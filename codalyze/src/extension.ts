@@ -3,7 +3,17 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
 import * as dotenv from 'dotenv';
-dotenv.config();
+import * as path from 'path';
+
+// Configure dotenv with explicit path
+const envPath = path.join(__dirname, '..', '.env');
+console.log('Looking for .env file at:', envPath);
+const result = dotenv.config({ path: envPath });
+if (result.error) {
+	console.error('Error loading .env file:', result.error);
+} else {
+	console.log('.env file loaded successfully');
+}
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -16,7 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	const disposable2= vscode.commands.registerCommand('codalyze.helloWorld', () => {
+	const disposable2 = vscode.commands.registerCommand('codalyze.helloWorld', () => {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
 		vscode.window.showInformationMessage('Hello World from codalyze!');
@@ -25,7 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
 	let disposable = vscode.commands.registerCommand('codalyze.processWithCodalyze', async () => {
 		try {
 			const editor = vscode.window.activeTextEditor;
-			if(!editor){
+			if (!editor) {
 				vscode.window.showErrorMessage("No active editor found");
 				return;
 			}
@@ -33,17 +43,17 @@ export function activate(context: vscode.ExtensionContext) {
 			const selection = editor.selection;
 			const selectedText = editor.document.getText(selection);
 
-			if (! selectedText){
+			if (!selectedText) {
 				vscode.window.showErrorMessage("No text selected");
 				return;
 			}
 
 			const userQuestion = await vscode.window.showInputBox({
 				placeHolder: "What do you want to ask Codalyze?",
-				prompt : "Ask Codalyze a question about the selected code"
+				prompt: "Ask Codalyze a question about the selected code"
 			});
 
-			if (!userQuestion){
+			if (!userQuestion) {
 				return;
 			}
 
@@ -61,23 +71,24 @@ export function activate(context: vscode.ExtensionContext) {
 				await vscode.window.showTextDocument(document);
 			});
 
-		} catch (error){
+		} catch (error) {
 			vscode.window.showErrorMessage(`Error: ${error instanceof Error ? error.message : String(error)}`);
 		}
-	}); 
+	});
 
-	
 
-	
+
+
 
 	context.subscriptions.push(disposable);
 	context.subscriptions.push(disposable2);
 }
 
-async function callAIModel(selectedText: string, userQuestion: string): Promise<string>{
+async function callAIModel(selectedText: string, userQuestion: string): Promise<string> {
 
 	try {
 		const apiKey = process.env.API_KEY;
+		console.log("API_KEY:", process.env.API_KEY);
 
 		if (!apiKey) {
 			throw new Error('API key not found. Please set it in your .env file.');
@@ -96,10 +107,6 @@ async function callAIModel(selectedText: string, userQuestion: string): Promise<
 					}
 				],
 				temperature: 0.7,
-				headers: {
-					"HTTP-Referer": "https://github.com/sebastiantorrescodes/codalyze", 
-					"X-Title": "AI Text Processor for VS Code" 
-				}
 			},
 
 			{
@@ -109,7 +116,7 @@ async function callAIModel(selectedText: string, userQuestion: string): Promise<
 				}
 			}
 
-		); 
+		);
 		return response.data.choices[0].message.content;
 
 	} catch (error) {
@@ -123,4 +130,4 @@ async function callAIModel(selectedText: string, userQuestion: string): Promise<
 
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }

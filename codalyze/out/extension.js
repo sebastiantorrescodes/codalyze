@@ -43,7 +43,17 @@ exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
 const axios_1 = __importDefault(require("axios"));
 const dotenv = __importStar(require("dotenv"));
-dotenv.config();
+const path = __importStar(require("path"));
+// Configure dotenv with explicit path
+const envPath = path.join(__dirname, '..', '.env');
+console.log('Looking for .env file at:', envPath);
+const result = dotenv.config({ path: envPath });
+if (result.error) {
+    console.error('Error loading .env file:', result.error);
+}
+else {
+    console.log('.env file loaded successfully');
+}
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {
@@ -101,6 +111,7 @@ function activate(context) {
 async function callAIModel(selectedText, userQuestion) {
     try {
         const apiKey = process.env.API_KEY;
+        console.log("API_KEY:", process.env.API_KEY);
         if (!apiKey) {
             throw new Error('API key not found. Please set it in your .env file.');
         }
@@ -115,10 +126,6 @@ async function callAIModel(selectedText, userQuestion) {
                 }
             ],
             temperature: 0.7,
-            headers: {
-                "HTTP-Referer": "https://github.com/sebastiantorrescodes/codalyze",
-                "X-Title": "AI Text Processor for VS Code"
-            }
         }, {
             headers: {
                 'Authorization': `Bearer ${apiKey}`,
